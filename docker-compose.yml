@@ -38,6 +38,8 @@ services:
       context: frontend
     depends_on:
       - backend
+    ports:
+      - "${PORT:-3000}:80"
     networks:
       - internal
     restart: unless-stopped

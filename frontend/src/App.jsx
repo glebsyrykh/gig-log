@@ -17,24 +17,22 @@ function fmtRangeShort(dates) {
   return s.length === 1 ? fmtDateShort(s[0]) : `${fmtDateShort(s[0])} — ${fmtDateShort(s[s.length-1])}`;
 }
 function getCountry(v) {
-  if (!v?.address && !v?.name) return "Unknown";
-  const a = (v.address || "").toLowerCase();
-  const n = (v.name || "").toLowerCase();
-  if (a.includes("finland") || a.includes("helsinki")) return "Finland";
-  if (a.includes("uk") || a.includes("united kingdom") || a.includes("london")) return "UK";
-  if (a.includes("germany") || a.includes("berlin")) return "Germany";
-  if (a.includes("portugal") || a.includes("lisbon") || a.includes("cascais")) return "Portugal";
-  if (a.includes("poland") || a.includes("warsaw") || a.includes("gdynia")) return "Poland";
-  if (a.includes("latvia") || a.includes("riga")) return "Latvia";
-  if (a.includes("czech") || a.includes("prague")) return "Czech Republic";
-  if (a.includes("belgium") || a.includes("brussels") || a.includes("antwerp")) return "Belgium";
-  if (a.includes("санкт-петербург") || a.includes("с.-петербург") || a.includes("спб")) return "Russia (SPb)";
-  if (a.includes("сочи")) return "Russia (Sochi)";
-  if (a.includes("москва") || a.includes("красногорск") || a.includes("тушино")) return "Russia (Moscow)";
-  if (v.lat > 59.7 && v.lat < 60.2 && v.lng > 29.5 && v.lng < 31.0) return "Russia (SPb)";
-  if (v.lat > 55.5 && v.lat < 56.1 && v.lng > 37.0 && v.lng < 38.0) return "Russia (Moscow)";
-  if (a || v.lat) return "Russia";
-  return "Unknown";
+    // Address-based fallback
+    const addr = (v?.address || "").trim();
+    if (addr) {
+        const segments = addr.split(",").map(s => s.trim()).filter(Boolean);
+        // Walk from the end, skipping segments that look like numbers/postcodes/building identifiers
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const seg = segments[i];
+            // Skip if it's mostly digits, has a digit as the first character, or is very short
+            if (/^\d/.test(seg) || seg.length < 2) continue;
+            // Cyrillic → Russian city
+            if (/[\u0400-\u04FF]/.test(seg)) return `Russia (${seg})`;
+            // Latin → country name or city (trust the data)
+            return seg;
+        }
+    }
+    return "Unknown";
 }
 function pureCountry(label) {
   if (label.startsWith("Russia")) return "Russia";
