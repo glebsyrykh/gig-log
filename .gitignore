@@ -1,0 +1,6 @@
+.env
+docker-compose.override.yml
+node_modules/
+dist/
+*.log
+backend/go.sum
